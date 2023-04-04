@@ -120,8 +120,7 @@ def run_scheduler():
 
 trim_database()
 
-#Set logging level to Critical so we dont get annoying reconect messages
-logging.getLogger("certstream").setLevel(logging.CRITICAL)
+logging.basicConfig(format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s', level=logging.INFO)
 
 
 certstream.listen_for_events(print_callback, url='wss://certstream.calidog.io/')
