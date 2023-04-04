@@ -9,13 +9,11 @@ import time
 import threading
 from urllib3.exceptions import InsecureRequestWarning
 
-
 triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]
 okta = ["$COMPANY","okta"]
 #This is a test list to confirm any changes work, change the below if statement as well so this works
 keywords = ["google"]
-
 
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
@@ -111,6 +109,8 @@ def print_callback(message, context):
 				ssdeep_hash = compute_ssdeep_hash(f"https://{domain}")
 				
 				hourly_hashes = json.loads(hourly_ssdeep_hashes) if hourly_ssdeep_hashes else []
+				if new_hash not in hourly_hashes:
+					hourly_hashes.append(new_hash)
 				
 				# Append the new hash to the list
 				hourly_hashes.append(ssdeep_hash)
