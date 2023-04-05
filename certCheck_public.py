@@ -17,14 +17,33 @@ okta = ["$COMPANY","okta"]
 zendesk = ["$COMPANY","zendesk"]
 #This is a test list to confirm any changes work, change the below if statement as well so this works
 keywords = ["google"]
-
-
+dnstwist_domain = '$YOURDOMAIN'
+lookalike_domains = []
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
 #time for database to hold domains before purge - 30 days
 max_age = 2592000
 
-#requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+#I do not want the list of domains printed
+class Suppress_domain_list:
+	def __enter__(self):
+		self.original_stdout = sys.stdout
+		sys.stdout = open(os.devnull, 'w')
+
+
+	def __exit__(self,exc_type,exc_val,exc_tb):
+		sys.stdout.close()
+		sys.stdout = self.original_stdout
+
+with Suppress_domain_list():
+	domain_variants = dnstwist.run(domain=dnstwist_domain, registered=False, format='list', dictionary='phishWords.dict')
+	pass   
+
+
+for domain in domain_variants:
+    if domain['domain'].startswith('xn--'):
+        continue
+    lookalike_domains.append(domain['domain'])
 
 def initialize_db():
 	conn = sqlite3.connect('seen_domains.db')
@@ -105,7 +124,7 @@ def print_callback(message, context):
 			domain = domain[2:]
 
    	#if any(keyword in domain for keyword in keywords):
-        if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk)) and not any(allowlist in domain for allowlist in allowlist):
+        if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk) or any(lookalike_domains in domain for lookalike_domains in lookalike_domains)) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
 			cursor.execute('SELECT last_shown_time, initial_finding_time, hourly_ssdeep_hashes FROM domains WHERE domain=?', (domain,))
 			result = cursor.fetchone()
