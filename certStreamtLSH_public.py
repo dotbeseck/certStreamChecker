@@ -15,17 +15,15 @@ import re
 
 triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]
-okta = ["$COMPANY","okta"]
-zendesk = ["$COMPANY","zendesk"]
-godaddy = ["$COMPANY","godaddysites.com"]
+specific_lists = [
+	["$COMPANY","okta"],
+	["$COMPANY","zendesk"],
+]
 #This is a test list to confirm any changes work, change the below if statement as well so this works
 keywords = ["google"]
-dnstwist_domain = '$YOURDOMAIN'
+special_pattern_triggerwords = r"\b" +re.escape(triggers) + r"\b"
+dnstwist_domain = '$COMPANY_DOMAIN'
 lookalike_domains = []
-#time to elapse to ignore new domains is 7 days
-time_window = 604800
-#time for database to hold domains before purge - 30 days
-max_age = 2592000
 
 #I do not want the list of domains printed
 class Suppress_domain_list:
@@ -42,18 +40,25 @@ with Suppress_domain_list():
 	domain_variants = dnstwist.run(domain=dnstwist_domain, registered=False, format='list', dictionary='phishWords.dict')
 	pass   
 
+
 for domain in domain_variants:
     if domain['domain'].startswith('xn--'):
         continue
     domain, _ = domain['domain'].split('.', 1)
     lookalike_domains.append(domain)
-regexMe = '|'.join(re.escape(domain) for domain in lookalike_domains)
+special_pattern_lookalike_domains = r"\b(?:{})\b".format("|".join(re.escape(lookalike_domain) for lookalike_domain in lookalike_domains))
+print(special_pattern_lookalike_domains )
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
 #time for database to hold domains before purge - 30 days
 max_age = 2592000
 
-
+def contains_all_keywords(domain, specific_lists):
+	for specific_list in specific_lists:
+		pattern = r"\b" + re.escape(specific_list) + r"\b"
+		if not re.search(pattern, domain):
+			return False
+	return True  
 #make a database for storing everything
 def initialize_db():
 	conn = sqlite3.connect('seen_domains_tlsh.db', timeout=30)
@@ -152,7 +157,7 @@ def print_callback(message, context):
 		domain = domain.lstrip('*.')
 
 			#if any(keyword in domain for keyword in keywords):
-		if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk) or bool(regexMe.search(domain))) and not any(allowlist in domain for allowlist in allowlist):
+		if (contains_all_keywords(domain, specific_lists) or re.search(special_pattern_triggerwords,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlists):
 			# Check if the domain has been seen recently
 			current_time = time.time()
 			conn, cursor = initialize_db()
@@ -177,7 +182,7 @@ scheduler_thread.start()
 
 
 #This will get certstream and other errors, like database access, requests errors, etc.
-logging.basicConfig(filename = 'certstream.log', format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s', level=logging.INFO)
+logging.basicConfig(filename = 'certstream_addDNSTWIST.log', format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s', level=logging.INFO)
 
 
 certstream.listen_for_events(print_callback, url='wss://certstream.calidog.io/')
