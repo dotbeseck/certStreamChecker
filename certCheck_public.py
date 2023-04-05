@@ -3,13 +3,12 @@ import json
 import logging
 import requests
 import schedule
-import ppdeep
 import sqlite3
 import time
 import threading
 from urllib3.exceptions import InsecureRequestWarning
 
-
+#OLDDDDD
 
 triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]

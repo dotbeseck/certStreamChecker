@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 *.db
 phishWords.dict
+certCheck_public.py
