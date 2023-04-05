@@ -146,7 +146,7 @@ scheduler_thread = threading.Thread(target=run_scheduler)
 scheduler_thread.start()
 
 
-
+#This will get certstream and other errors, like database access, requests errors, etc.
 logging.basicConfig(filename = 'certstream.log', format='[%(levelname)s:%(name)s] %(asctime)s - %(message)s', level=logging.INFO)
 
 
