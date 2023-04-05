@@ -10,6 +10,7 @@ import threading
 from urllib3.exceptions import InsecureRequestWarning
 
 
+
 triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]
 okta = ["$COMPANY","okta"]
@@ -26,7 +27,7 @@ max_age = 2592000
 #requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 def initialize_db():
-	conn = sqlite3.connect('seen_domains_ssdeep_fixed.db')
+	conn = sqlite3.connect('seen_domains.db')
 	cursor = conn.cursor()
 	cursor.execute('''
 	CREATE TABLE IF NOT EXISTS domains (
@@ -103,7 +104,7 @@ def print_callback(message, context):
 		if domain.startswith('*.'):
 			domain = domain[2:]
 
-    	#if any(keyword in domain for keyword in keywords):
+   	#if any(keyword in domain for keyword in keywords):
         if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk)) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
 			cursor.execute('SELECT last_shown_time, initial_finding_time, hourly_ssdeep_hashes FROM domains WHERE domain=?', (domain,))
@@ -140,7 +141,7 @@ def print_callback(message, context):
 				conn.commit()
 	conn.close()
 	trim_database()
-schedule.every(30).seconds.do(check_website_changes)
+schedule.every(1).hours.do(check_website_changes)
 
 def run_scheduler():
 	while True:
