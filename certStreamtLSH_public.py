@@ -49,7 +49,6 @@ for domain in domain_variants:
     lookalike_domains.append(domain)
 #regexMe = '|'.join(re.escape(domain) for domain in lookalike_domains)
 special_pattern_lookalike_domains = r"\b(?:{})\b".format("|".join(re.escape(lookalike_domain) for lookalike_domain in lookalike_domains))
-print(special_pattern_lookalike_domains)
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
 #time for database to hold domains before purge - 30 days
