@@ -153,7 +153,7 @@ def print_callback(message, context):
 		domain = domain.lstrip('*.')
 
 			#if any(keyword in domain for keyword in keywords):
-		if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk) or or bool(regexMe.search(domain))) and not any(allowlist in domain for allowlist in allowlist):
+		if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk) or bool(regexMe.search(domain))) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
 			current_time = time.time()
 			conn, cursor = initialize_db()
