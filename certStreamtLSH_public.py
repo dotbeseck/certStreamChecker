@@ -11,6 +11,7 @@ import tlsh
 import dnstwist
 import os
 import sys
+import re
 
 triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]
@@ -45,6 +46,8 @@ for domain in domain_variants:
         continue
     domain, _ = domain['domain'].split('.', 1)
     lookalike_domains.append(domain)
+regexMe = '|'.join(re.escape(domain) for domain in lookalike_domains)
+print(regexMe)
 
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
@@ -150,7 +153,7 @@ def print_callback(message, context):
 		domain = domain.lstrip('*.')
 
 			#if any(keyword in domain for keyword in keywords):
-		if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk) or any(lookalike_domains in domain for lookalike_domains in lookalike_domains)) and not any(allowlist in domain for allowlist in allowlist):
+		if (all(okta in domain for okta in okta) or any(triggers in domain for triggers in triggers) or all(zendesk in domain for zendesk in zendesk) or or bool(regexMe.search(domain))) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
 			current_time = time.time()
 			conn, cursor = initialize_db()
