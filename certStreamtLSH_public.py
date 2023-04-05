@@ -43,7 +43,8 @@ with Suppress_domain_list():
 for domain in domain_variants:
     if domain['domain'].startswith('xn--'):
         continue
-    lookalike_domains.append(domain['domain'])
+    domain, _ = domain['domain'].split('.', 1)
+    lookalike_domains.append(domain)
 
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
