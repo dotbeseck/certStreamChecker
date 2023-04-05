@@ -37,7 +37,8 @@ class Suppress_domain_list:
 		sys.stdout = self.original_stdout
 
 with Suppress_domain_list():
-	domain_variants = dnstwist.run(domain='$DOMAIN', registered=False, format='list', dictionary='phishWords.dict')
+	domain_variants = dnstwist.run(domain='chime.com', registered=False, format='list', fuzzers='addition,bitsquatting,dictionary,homoglyph,insertion,repetition,replacement,transposition,vowel-swap', dictionary='phishWords.dict')
+
 	pass   
 
 
