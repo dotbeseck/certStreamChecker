@@ -70,7 +70,7 @@ def check_website_changes():
 			hourly_hashes = json.loads(hourly_ssdeep_hashes) if hourly_ssdeep_hashes else []
 			if old_hash and new_hash:
 				comparison_score = ppdeep.compare(old_hash, new_hash)
-				print (f"Old Hash Check{new_hash}")
+				#print (f"Old Hash Check{new_hash}")
 				if comparison_score >= 30:
 					print(f"ssdeep hash changed for domain: {domain} and has a score of {comparison_score} ")
 				
