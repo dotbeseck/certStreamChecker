@@ -37,7 +37,7 @@ class Suppress_domain_list:
 		sys.stdout = self.original_stdout
 
 with Suppress_domain_list():
-	domain_variants = dnstwist.run(domain=dnstwist_domain, registered=False, format='list', dictionary='phishWords.dict')
+	domain_variants = dnstwist.run(domain='$DOMAIN', registered=False, format='list', dictionary='phishWords.dict')
 	pass   
 
 
@@ -46,19 +46,32 @@ for domain in domain_variants:
         continue
     domain, _ = domain['domain'].split('.', 1)
     lookalike_domains.append(domain)
+#regexMe = '|'.join(re.escape(domain) for domain in lookalike_domains)
 special_pattern_lookalike_domains = r"\b(?:{})\b".format("|".join(re.escape(lookalike_domain) for lookalike_domain in lookalike_domains))
-print(special_pattern_lookalike_domains )
+print(special_pattern_lookalike_domains)
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
 #time for database to hold domains before purge - 30 days
 max_age = 2592000
 
 def contains_all_keywords(domain, specific_lists):
+	if not isinstance(specific_lists, list) or not all(isinstance(kw,str) for kw in specific_lists):
+		return False
 	for specific_list in specific_lists:
 		pattern = r"\b" + re.escape(specific_list) + r"\b"
 		if not re.search(pattern, domain):
 			return False
 	return True  
+
+def contains_any_keywords(domain,chimewords):
+	if not isinstance(chimewords, list) or not all(isinstance(kw,str) for kw in chimewords):
+		return False
+	for chimeword in chimewords:
+		pattern = r"\b" + re.escape(chimewords) + r"\b"
+		if re.search(pattern, domain):
+			return True
+	return False
+
 #make a database for storing everything
 def initialize_db():
 	conn = sqlite3.connect('seen_domains_tlsh.db', timeout=30)
@@ -157,7 +170,8 @@ def print_callback(message, context):
 		domain = domain.lstrip('*.')
 
 			#if any(keyword in domain for keyword in keywords):
-		if (contains_all_keywords(domain, specific_lists) or re.search(special_pattern_triggerwords,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlists):
+		if (contains_all_keywords(domain, specific_lists) or contains_any_keywords(triggers,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlists):
+		#if (re.search(special_pattern_chimewords,domain) or re.search(special_pattern_zenchimes,domain) or re.search(special_pattern_oktachimes,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
 			current_time = time.time()
 			conn, cursor = initialize_db()
