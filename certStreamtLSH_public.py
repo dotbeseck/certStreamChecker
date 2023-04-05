@@ -17,6 +17,7 @@ triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]
 okta = ["$COMPANY","okta"]
 zendesk = ["$COMPANY","zendesk"]
+godaddy = ["$COMPANY","godaddysites.com"]
 #This is a test list to confirm any changes work, change the below if statement as well so this works
 keywords = ["google"]
 dnstwist_domain = '$YOURDOMAIN'
@@ -47,8 +48,6 @@ for domain in domain_variants:
     domain, _ = domain['domain'].split('.', 1)
     lookalike_domains.append(domain)
 regexMe = '|'.join(re.escape(domain) for domain in lookalike_domains)
-print(regexMe)
-
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
 #time for database to hold domains before purge - 30 days
