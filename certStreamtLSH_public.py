@@ -37,8 +37,7 @@ class Suppress_domain_list:
 		sys.stdout = self.original_stdout
 
 with Suppress_domain_list():
-	domain_variants = dnstwist.run(domain='chime.com', registered=False, format='list', fuzzers='addition,bitsquatting,dictionary,homoglyph,insertion,repetition,replacement,transposition,vowel-swap', dictionary='phishWords.dict')
-
+	domain_variants = dnstwist.run(domain=dnstwist_domain, registered=False, format='list', fuzzers='addition,bitsquatting,dictionary,homoglyph,insertion,repetition,transposition,vowel-swap', dictionary='phishWords.dict')
 	pass   
 
 
@@ -49,6 +48,7 @@ for domain in domain_variants:
     lookalike_domains.append(domain)
 #regexMe = '|'.join(re.escape(domain) for domain in lookalike_domains)
 special_pattern_lookalike_domains = r"\b(?:{})\b".format("|".join(re.escape(lookalike_domain) for lookalike_domain in lookalike_domains))
+print(special_pattern_lookalike_domains)
 #time to elapse to ignore new domains is 7 days
 time_window = 604800
 #time for database to hold domains before purge - 30 days
@@ -63,18 +63,18 @@ def contains_all_keywords(domain, specific_lists):
 			return False
 	return True  
 
-def contains_any_keywords(domain,chimewords):
-	if not isinstance(chimewords, list) or not all(isinstance(kw,str) for kw in chimewords):
+def contains_any_keywords(domain,triggers):
+	if not isinstance(triggers, list) or not all(isinstance(kw,str) for kw in triggers):
 		return False
-	for chimeword in chimewords:
-		pattern = r"\b" + re.escape(chimewords) + r"\b"
+	for trigger in triggers:
+		pattern = r"\b" + re.escape(triggers) + r"\b"
 		if re.search(pattern, domain):
 			return True
 	return False
 
 #make a database for storing everything
 def initialize_db():
-	conn = sqlite3.connect('seen_domains_tlsh.db', timeout=30)
+	conn = sqlite3.connect('seen_domains_tlsh.db')
 	cursor = conn.cursor()
 	cursor.execute('''
 	CREATE TABLE IF NOT EXISTS domains (
@@ -121,7 +121,7 @@ def check_website_changes():
 			hourly_hashes = json.loads(hourly_tlsh_hashes) if hourly_tlsh_hashes else []
 			if old_hash and new_hash:
 				comparison_score = tlsh.diff(old_hash, new_hash)
-				if comparison_score < 100:
+				if comparison_score > 60:
 					print(f"tlsh hash changed for domain: {domain} and has a score of {comparison_score} ")
 				
 				# Update the tlsh_hash in the domains table
@@ -157,7 +157,7 @@ def delayed_hashing(domain, last_shown_time, initial_finding_time):
 
 #where we get the certstream and only cert updates
 def print_callback(message, context):
-	logging.debug("Message -> {}".format(message))
+	#logging.debug("Message -> {}".format(message))
 	# Extract the certificate data from the message
 	if message['message_type'] == "certificate_update":
 		conn, cursor = initialize_db()
@@ -165,25 +165,26 @@ def print_callback(message, context):
 		all_domains = leaf_cert['all_domains']
 		current_time = time.time()
 	
-	
-	for domain in all_domains:
-		domain = domain.lstrip('*.')
+	with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+		for domain in all_domains:
+			domain = domain.lstrip('*.')
 
 			#if any(keyword in domain for keyword in keywords):
-		if (contains_all_keywords(domain, specific_lists) or contains_any_keywords(triggers,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlists):
+			if (contains_all_keywords(domain, specific_lists) or contains_any_keywords(triggers,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlists):
 		#if (re.search(special_pattern_chimewords,domain) or re.search(special_pattern_zenchimes,domain) or re.search(special_pattern_oktachimes,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
-			current_time = time.time()
-			conn, cursor = initialize_db()
-			cursor.execute('SELECT last_shown_time, initial_finding_time FROM domains WHERE domain=?', (domain,))
-			result = cursor.fetchone()
-			conn.close()
+				current_time = time.time()
+				conn, cursor = initialize_db()
+				cursor.execute('SELECT last_shown_time, initial_finding_time FROM domains WHERE domain=?', (domain,))
+				result = cursor.fetchone()
+				conn.close()
 			
-			if not result or (current_time - result[0]) >= time_window:
-				last_shown_time = initial_finding_time = current_time if not result else result[0]
-				threading.Thread(target=delayed_hashing, args=(domain, last_shown_time, initial_finding_time)).start()
+				if not result or (current_time - result[0]) >= time_window:
+					last_shown_time = initial_finding_time = current_time if not result else result[0]
+					#threading.Thread(target=delayed_hashing, args=(domain, last_shown_time, initial_finding_time)).start()
+					executor.submit(delayed_hashing, domain, last_shown_time, initial_finding_time)
 
-	trim_database()
+		trim_database()
 schedule.every(30).minutes.do(check_website_changes)
 
 #how we schedule a hash recheck
@@ -200,3 +201,4 @@ logging.basicConfig(filename = 'certstream_addDNSTWIST.log', format='[%(levelnam
 
 
 certstream.listen_for_events(print_callback, url='wss://certstream.calidog.io/')
+conn.close()
