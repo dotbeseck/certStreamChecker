@@ -5,13 +5,13 @@ import requests
 import schedule
 import sqlite3
 import time
-import threading
 from urllib3.exceptions import InsecureRequestWarning
 import tlsh
 import dnstwist
 import os
 import sys
 import re
+import concurrent.futures
 
 triggers = ["PUT", "KEYWORDS", "HERE"]
 allowlist = ["KEYWORDS", "TO", "NOT", "TRIGGER", "ON"]
