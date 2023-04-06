@@ -171,7 +171,6 @@ def print_callback(message, context):
 
 			#if any(keyword in domain for keyword in keywords):
 			if (contains_all_keywords(domain, specific_lists) or contains_any_keywords(triggers,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlists):
-		#if (re.search(special_pattern_chimewords,domain) or re.search(special_pattern_zenchimes,domain) or re.search(special_pattern_oktachimes,domain) or re.search(special_pattern_lookalike_domains,domain)) and not any(allowlist in domain for allowlist in allowlist):
 			# Check if the domain has been seen recently
 				current_time = time.time()
 				conn, cursor = initialize_db()
