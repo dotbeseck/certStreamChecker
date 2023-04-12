@@ -8,20 +8,20 @@ To use this you need to have postgreSQL installed and a Database created:
 
 Go to your new database: psql $YOURDATABASE
 
-Use this to create the needed Table: CREATE TABLE domains ( domain VARCHAR(255) PRIMARY KEY, last_shown_time DOUBLE PRECISION, tlsh_hash VARCHAR(255), initial_finding_time DOUBLE PRECISION, hourly_tlsh_hashes TEXT, last_hash_check_time DOUBLE PRECISION );
+Use this to create the needed Table: `CREATE TABLE domains ( domain VARCHAR(255) PRIMARY KEY, last_shown_time DOUBLE PRECISION, tlsh_hash VARCHAR(255), initial_finding_time DOUBLE PRECISION, hourly_tlsh_hashes TEXT, last_hash_check_time DOUBLE PRECISION );`
 
-Use this to create the role (user): CREATE ROLE catcherinthedns;
+Use this to create the role (user): `CREATE ROLE catcherinthedns;`
 
-Use this to set a password: ALTER ROLE catcherInTheDNS WITH PASSWORD 'PASSWORD';
+Use this to set a password: `ALTER ROLE catcherInTheDNS WITH PASSWORD 'PASSWORD';`
 
-Use this to set the permissions: GRANT SELECT, INSERT, UPDATE, DELETE, LOGIN ON TABLE domains TO catcherinthedns;
+Use this to set the permissions: `GRANT SELECT, INSERT, UPDATE, DELETE, LOGIN ON TABLE domains TO catcherinthedns;`
 
-Set password as environment variable: echo 'export DB_PASSWORD=$SOMEPASSWORD' >> ~/.zshrc and source ~/.zshrc
+Set password as environment variable: `echo 'export DB_PASSWORD=$SOMEPASSWORD' >> ~/.zshrc and source ~/.zshrc`
 
-Setup a virtualenv: virtualenv dnswithatwist
+Setup a virtualenv: `virtualenv dnswithatwist`
 
-Activate: source dnswithatwist/bin/activate
+Activate: `source dnswithatwist/bin/activate`
 
-Install required packages: python -m pip install -r requirements.txt
+Install required packages: `python -m pip install -r requirements.txt`
 
-Run the script: python -m dnswithatwist
+Run the script: `python -m dnswithatwist`
