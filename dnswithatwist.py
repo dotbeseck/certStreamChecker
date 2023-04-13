@@ -222,7 +222,7 @@ def check_website_changes():
 				if old_hash and new_hash:
 					if is_valid_hash(old_hash) and is_valid_hash(new_hash):
 						comparison_score = tlsh.diff(old_hash, new_hash)
-						if comparison_score > 60:
+						if comparison_score > 200:
 							print(
 								f"tlsh hash changed for domain: {domain} and has a score of {comparison_score} "
 							)
